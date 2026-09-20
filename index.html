@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="简易 CTF 答题页面">
+  <title>CTF 挑战赛 · 答题平台</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">CTF CHALLENGE</p>
+        <h1>三题挑战</h1>
+        <p class="subtitle">提交正确的 flag，即可解锁对应题目。</p>
+      </div>
+
+      <div class="score-panel" aria-live="polite">
+        <span class="score-label">当前进度</span>
+        <strong><span id="solved-count">0</span><span class="score-total"> / 3</span></strong>
+        <div class="progress-track" aria-hidden="true">
+          <span id="progress-bar"></span>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section id="question-list" class="question-list" aria-label="答题列表"></section>
+    </main>
+
+    <footer class="page-footer">
+      <span>Flag 格式以题目说明为准</span>
+      <button id="reset-button" class="text-button" type="button">重置答题进度</button>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="quiz-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
