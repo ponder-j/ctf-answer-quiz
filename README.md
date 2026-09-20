@@ -14,18 +14,23 @@ python3 -m http.server 4173
 
 ## 配置题目和答案
 
-编辑 `quiz-config.js` 中对应题目的 `content` 和 `flag` 字段：
+编辑 `quiz-config.js` 中对应题目的 `content` 和 `flagHash` 字段。网页只保存
+答案的 SHA-256 哈希，不保存明文：
+
+```bash
+printf '%s' 'flag{your_answer}' | shasum -a 256
+```
 
 ```js
 {
   id: 1,
   title: "第一题",
   content: "题目内容",
-  flag: "flag{your_answer}",
+  flagHash: "哈希结果",
 }
 ```
 
-> 当前实现是纯前端页面，答案会随源码发送到浏览器，仅适合练习或非正式场景。正式比赛应将答案校验迁移到服务端。
+> 纯前端哈希校验可以避免直接暴露明文 flag，但无法抵御离线枚举。正式比赛应将答案校验迁移到服务端。
 
 ## GitHub Pages
 

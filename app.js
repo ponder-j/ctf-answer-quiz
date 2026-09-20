@@ -20,6 +20,19 @@ function normalizeFlag(value) {
   return value.trim();
 }
 
+async function sha256(value) {
+  if (!window.crypto?.subtle) {
+    throw new Error("Web Crypto API is unavailable");
+  }
+
+  const data = new TextEncoder().encode(value);
+  const digest = await window.crypto.subtle.digest("SHA-256", data);
+
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
+}
+
 function renderQuestions() {
   questionList.innerHTML = quizConfig
     .map((question) => {
@@ -65,7 +78,7 @@ function renderQuestions() {
   });
 }
 
-function handleSubmit(event) {
+async function handleSubmit(event) {
   event.preventDefault();
 
   const form = event.currentTarget;
@@ -74,6 +87,7 @@ function handleSubmit(event) {
   const question = quizConfig.find((item) => item.id === questionId);
   const input = form.elements.flag;
   const feedback = form.querySelector("[data-feedback]");
+  const button = form.querySelector('button[type="submit"]');
   const submittedFlag = normalizeFlag(input.value);
 
   if (!submittedFlag) {
@@ -82,19 +96,34 @@ function handleSubmit(event) {
     return;
   }
 
-  if (!question.flag) {
+  if (!question.flagHash) {
     showFeedback(feedback, "warning", "本题答案尚未配置，请联系管理员。");
     return;
   }
 
-  if (submittedFlag === normalizeFlag(question.flag)) {
-    markSolved(card, input, feedback);
-    showToast(`第 ${question.id} 题回答正确！`);
-    return;
-  }
+  button.disabled = true;
+  button.textContent = "校验中...";
 
-  showFeedback(feedback, "error", "回答错误，请再试一次。");
-  input.select();
+  try {
+    const submittedHash = await sha256(submittedFlag);
+
+    if (submittedHash === question.flagHash) {
+      markSolved(card, input, feedback);
+      showToast(`第 ${question.id} 题回答正确！`);
+      return;
+    }
+
+    showFeedback(feedback, "error", "回答错误，请再试一次。");
+    input.select();
+  } catch (error) {
+    console.error("Flag verification failed:", error);
+    showFeedback(feedback, "error", "当前浏览器无法执行安全校验，请使用现代浏览器或通过 HTTPS 访问。");
+  } finally {
+    if (!card.classList.contains("is-solved")) {
+      button.disabled = false;
+      button.textContent = "提交";
+    }
+  }
 }
 
 function markSolved(card, input, feedback) {
@@ -108,7 +137,10 @@ function markSolved(card, input, feedback) {
   card.classList.add("is-solved");
   card.querySelector("[data-status]").textContent = "已通过";
   input.disabled = true;
-  card.querySelector('button[type="submit"]').disabled = true;
+
+  const button = card.querySelector('button[type="submit"]');
+  button.disabled = true;
+  button.textContent = "已通过";
   showFeedback(feedback, "success", "回答正确，已通过本题！");
 }
 
@@ -147,6 +179,7 @@ function resetProgress() {
     input.disabled = false;
     input.value = "";
     button.disabled = false;
+    button.textContent = "提交";
   });
 
   showToast("答题进度已重置");
