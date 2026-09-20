@@ -3,3 +3,6 @@ Thumbs.db
 *.log
 .idea/
 .vscode/
+
+# 原始题目截图，仅用于提取文字，不发布
+/题目/
